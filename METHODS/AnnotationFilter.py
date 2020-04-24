@@ -10,6 +10,9 @@ import sys
 # In[23]:
 
 
+import Bio
+assert Bio.__version__ == "1.70", "Wrong version of Biopython, currently only works with 1.70"
+
 import Bio.Alphabet
 import Bio.SeqIO as SIO
 
