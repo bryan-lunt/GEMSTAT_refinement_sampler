@@ -81,7 +81,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #just for test
 #DEBUG
-SRC=${BASE}/GEM/RATES2/src
+SRC=${BASE}/GEM/FOOBAR/src
 
 
 #use whatever way you want to separate training from prediction
@@ -94,10 +94,9 @@ SINGLE_PAR_FILE=$(basename ${PARFILE} .par)
 STARTING_POINT_ARGS="-p ${PARFILE}"
 
 
-export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.txt"
+export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.txt -lower_bound ${DATA}/lower.par -upper_bound ${DATA}/upper.par"
 export COMMON_DATA_ARGS="-s $DATA/seqs.fa "
-export MODEL_ARGS="-o Direct "
-#"-oo SSE -ct 25 -rt 250 -et 0.5" 
+export MODEL_ARGS="-o Direct -oo SSE -ct 100 -rt 250 -et 0.7 "
 
 
 if [ "${TRAIN}" == "1" ]

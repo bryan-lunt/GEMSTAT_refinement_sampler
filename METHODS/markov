@@ -81,7 +81,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #just for test
 #DEBUG
-SRC=${BASE}/GEM/GSMARKOV/src
+SRC=${BASE}/GEM/RATES2/src
 
 
 #use whatever way you want to separate training from prediction
@@ -94,9 +94,26 @@ SINGLE_PAR_FILE=$(basename ${PARFILE} .par)
 STARTING_POINT_ARGS="-p ${PARFILE}"
 
 
-export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.markov -lower_bound ${DATA}/lower.markov -upper_bound ${DATA}/upper.markov"
+BASESHIFT=${BASESHIFT:-"0.0"}
+
+export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt"
+if [ -f "${DATA}/free_fix.txt" ]
+then
+	BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -ff ${DATA}/free_fix.txt"
+fi
+
+if [ -f "${DATA}/lower.par" ]
+then
+	BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -lower_bound ${DATA}/lower.par"
+fi
+
+if [ -f "${DATA}/upper.par" ]
+then
+	BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -upper_bound ${DATA}/upper.par"
+fi
+
 export COMMON_DATA_ARGS="-s $DATA/seqs.fa "
-export MODEL_ARGS="-o Markov -oo SSE -ct 25 -rt 250 -et 0.5 -l1 0.0001 -l2 0.0001 "
+export MODEL_ARGS="-o Markov -oo SSE -ct 38 -rt 0"
 
 
 if [ "${TRAIN}" == "1" ]
@@ -104,11 +121,15 @@ then
 	tmpdatadir=$(mktemp -d ${TMP-${TMPDIR}}/noiseddata.XXXXXX)
 	cp ${DATA}/* ${tmpdatadir}/
 	export PYTHONPATH=${PYTHONPATH}:${BASE}/lib/GEMSTAT_scripts/python/src/
-	python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --s0 ${SIGMA0} --s1 ${SIGMA1} --C ${COPIES} ${tmpdatadir}/factor_expr.tab ${tmpdatadir}/factor_expr.tab.noise
+	python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --baseshift ${BASESHIFT} --s0 ${SIGMA0} --s1 ${SIGMA1} --C ${COPIES} ${tmpdatadir}/factor_expr.tab ${tmpdatadir}/factor_expr.tab.noise
 	python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --s0 0.0 --s1 0.0 --C ${COPIES} ${tmpdatadir}/expr.tab ${tmpdatadir}/expr.tab.noise
-	
+	if [ -f "${tmpdatadir}/weights.tab" ]
+        then
+                python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --s0 0.0 --s1 0.0 --C ${COPIES} ${tmpdatadir}/weights.tab ${tmpdatadir}/weights.tab.noise
+                BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -train_weights ${tmpdatadir}/weights.tab.noise"
+        fi	
 	
 	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} -e ${tmpdatadir}/expr.tab.noise -f ${tmpdatadir}/factor_expr.tab.noise ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} -po ${PAR_outfile} ${*} &> ${LOG}
 else
-	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} ${*} &> ${LOG}
+	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} ${*} -oo SSE &> ${LOG}
 fi

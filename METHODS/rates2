@@ -97,7 +97,7 @@ STARTING_POINT_ARGS="-p ${PARFILE}"
 export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.rates -c $DATA/coop.txt -ff $DATA/free_fix.rates -lower_bound ${DATA}/lower.rates -upper_bound ${DATA}/upper.rates"
 export COMMON_DATA_ARGS="-s $DATA/seqs.fa "
 export MODEL_ARGS="-o Rates"
-#" -oo SSE -ct 100 -rt 250 -et 0.7 -l1 0.001 -l2 0.001"
+#" -oo SSE -ct 100 -rt 250 -l1 0.001 -l2 0.001"
 
 
 if [ "${TRAIN}" == "1" ]

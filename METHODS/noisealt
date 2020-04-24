@@ -94,10 +94,9 @@ SINGLE_PAR_FILE=$(basename ${PARFILE} .par)
 STARTING_POINT_ARGS="-p ${PARFILE}"
 
 
-export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.txt"
+export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.txt -lower_bound ${DATA}/lower.par -upper_bound ${DATA}/upper.par"
 export COMMON_DATA_ARGS="-s $DATA/seqs.fa "
-export MODEL_ARGS="-o Direct "
-#"-oo SSE -ct 25 -rt 250 -et 0.5" 
+export MODEL_ARGS="-o Direct -ct 100 -rt 250 "
 
 
 if [ "${TRAIN}" == "1" ]
@@ -107,9 +106,23 @@ then
 	export PYTHONPATH=${PYTHONPATH}:${BASE}/lib/GEMSTAT_scripts/python/src/
 	python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --s0 ${SIGMA0} --s1 ${SIGMA1} --C ${COPIES} ${tmpdatadir}/factor_expr.tab ${tmpdatadir}/factor_expr.tab.noise
 	python ${BASE}/lib/GEMSTAT_scripts/python/scripts/apply_noise_regularization.py --s0 0.0 --s1 0.0 --C ${COPIES} ${tmpdatadir}/expr.tab ${tmpdatadir}/expr.tab.noise
-	
-	
-	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} -e ${tmpdatadir}/expr.tab.noise -f ${tmpdatadir}/factor_expr.tab.noise ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} -po ${PAR_outfile} ${*} &> ${LOG}
+
+	cp ${PARFILE} ${tmpdatadir}/last_cycle.par
+
+
+		
+	for iteration in $(seq ${NA_CYCLES} -1 1)
+	do
+		echo "ITERATION ${iteration}"
+		$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} -e ${tmpdatadir}/expr.tab.noise -f ${tmpdatadir}/factor_expr.tab.noise ${MODEL_ARGS} -fo ${tmpdatadir}/discard.out.${iteration} -p ${tmpdatadir}/last_cycle.par -po ${tmpdatadir}/this_cycle.pgp.par ${*} -oo PGP -na 1
+		$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} -e ${tmpdatadir}/expr.tab.noise -f ${tmpdatadir}/factor_expr.tab.noise ${MODEL_ARGS} -fo ${tmpdatadir}/endcycle.out.${iteration} -p ${tmpdatadir}/this_cycle.pgp.par -po ${tmpdatadir}/this_cycle.sse.par ${*} -na 1
+		mv ${tmpdatadir}/this_cycle.sse.par ${tmpdatadir}/last_cycle.par
+		rm ${tmpdatadir}/this_cycle.pgp.par
+	done
+	ld ${tmpdatadir}
+	cp ${tmpdatadir}/last_cycle.par ${PAR_outfile}
+	cp ${tmpdatadir}/endcycle.out.1 ${OUT_filename}
+
 else
-	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} ${*} &> ${LOG}
+	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na 0 ${STARTING_POINT_ARGS} ${*}
 fi
