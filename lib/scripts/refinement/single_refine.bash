@@ -5,6 +5,24 @@ JOBBASE=$1
 N=${2}
 method_name=${3}
 
+exit_with_code() {
+	if [ "${DEBUG}" = "True" ]
+	then
+        	echo "Stalling at end for debug" ; echo "Stalling at end for debug" >&2
+        	sleep 1000
+	fi
+
+	exit $1
+}
+
+
+abort_code_msg() {
+	echo "ABORTING: $2 " >&2
+	echo "ABORTING: $2 " >&1
+
+	exit_with_code $1
+}
+
 
 source ${JOBBASE}/ENV_DUMP.txt
 source ${JOBBASE}/SETTINGS_2.bash
@@ -47,7 +65,7 @@ then
 else
 	if [ ! -e "${datadir_to_use}/${TEMPLATE_NAME}" ]
 	then
-		echo "Could not find the requested template." 1>&2 ; exit 1
+		abort_code_msg 1 "Could not find the requested template."
 	fi
 	
 	THE_PAR_FILE="${TMP-${TMPDIR}}/start.par"
@@ -58,7 +76,7 @@ fi
 
 if [ ! -e "${THE_PAR_FILE}" ]
 then
-	echo "Par file ${THE_PAR_FILE} does not exist" 1>&1 ; exit 1
+	abort_code_msg 1 "Par file ${THE_PAR_FILE} does not exist"
 fi
 
 
@@ -81,8 +99,7 @@ eval ${method_additional_environment} ${BASE}/METHODS/${method_name} --train --d
 #The above does not quit the main script on failure.
 if [ $? -ne 0 ]
 then
-	echo "Aborting"; echo "Aborting" 2>&1 
-	exit 0
+	abort_code_msg 0 "Aborting"
 	#A non-zero exit status would tell the whole DAG to fail.
 fi
 
@@ -127,8 +144,4 @@ done
 
 (echo "FINISHED" ; echo "FINISHED" >&2 )
 
-if [ "${DEBUG}" = "True" ]
-then
-	echo "Stalling at end for debug" ; echo "Stalling at end for debug" >&2
-	sleep 1000
-fi
+exit_with_code 0 #will stall if need be.

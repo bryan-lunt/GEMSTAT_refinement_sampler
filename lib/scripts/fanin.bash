@@ -13,11 +13,14 @@ END_N=${4}
 #source /home/bjlunt2/.bashrc
 #source /home/bjlunt2/.profile
 
+source /etc/profile.d/modules.sh
+
+
 module purge
 module load gcc/9.2.0 python/2.7.11
 #module load python
 #export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
-export PATH=/software/python-2.7.11/bin/:${PATH}
+export PATH=/usr/bin:/usr/local/bin:/software/python-2.7.11/bin/:${PATH}
 echo "USING PYTHON " $(which python)
 #LD_LIBRARY_PATH=~/usr/lib:/home/grad/samee1/packages/gsl-1.14/lib:/software/intel-composer-2011u5-x86_64/composerxe-2011.5.220/mkl/lib/intel64:${LD_LIBRARY_PATH}
 #export LD_LIBRARY_PATH
