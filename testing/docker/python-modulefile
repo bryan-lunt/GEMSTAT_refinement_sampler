@@ -1,0 +1,20 @@
+#%Module1.0
+
+proc ModulesHelp { } {
+    puts stderr "This modules loads python"
+}
+
+module-whatis "Python 2.7.15 under the false name 2.7.11 from the micromamba environment"
+
+set root    /opt/micromamba
+set envname py2715
+set envpath $root/envs/$envname
+
+prepend-path PATH     $envpath/bin
+prepend-path LD_LIBRARY_PATH $envpath/lib
+
+setenv CONDA_PREFIX $envpath
+setenv CONDA_DEFAULT_ENV $envname
+setenv MAMBA_ROOT_PREFIX /opt/micromamba
+
+setenv PYTHON27_MODULE_ROOT $envpath
