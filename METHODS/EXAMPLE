@@ -81,7 +81,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #just for test
 #DEBUG
-SRC=${BASE}/GEM/GEMSTAT/src
+SRC=${BASE}/GEM/EXAMPLE/src
 
 
 #use whatever way you want to separate training from prediction
@@ -94,14 +94,19 @@ SINGLE_PAR_FILE=$(basename ${PARFILE} .par)
 STARTING_POINT_ARGS="-p ${PARFILE}"
 
 
-export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt -ff $DATA/free_fix.txt"
+export BASE_COMMON_ARGS="-e ${DATA}/expr.tab -f $DATA/factor_expr.tab -m $DATA/factors.wtmx -i ${DATA}/factor_info.txt -c $DATA/coop.txt"
+export BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -ff $DATA/free_fix.txt -lower_bound ${DATA}/lower.par -upper_bound ${DATA}/upper.par"
+#export BASE_COMMON_ARGS="${BASE_COMMON_ARGS} -signal ${DATA}/signal.tab"
+
 export COMMON_DATA_ARGS="-s $DATA/seqs.fa "
 export MODEL_ARGS="-o Direct -oo SSE -ct 25 -rt 250 -et 0.5 "
 
 
 if [ "${TRAIN}" == "1" ]
 then
+  echo "RUNNING : $SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} -po ${PAR_outfile} ${*} &> ${LOG}"
 	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} -po ${PAR_outfile} ${*} &> ${LOG}
 else
+  echo "RUNNING(CROSSVAL): $SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} ${*}"
 	$SRC/seq2expr ${BASE_COMMON_ARGS} ${COMMON_DATA_ARGS} ${MODEL_ARGS} -fo ${OUT_filename} -na ${NA_CYCLES} ${STARTING_POINT_ARGS} ${*} &> ${LOG}
 fi

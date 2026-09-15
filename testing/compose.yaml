@@ -1,0 +1,6 @@
+services:
+  condor:
+    image: gs_sampler_test
+    build: ./docker
+    volumes:
+      - ../:/mnt/host

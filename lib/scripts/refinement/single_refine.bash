@@ -1,5 +1,4 @@
 #!/bin/bash
-
 JOBBASE=$1
 #N=$(( ${2} + 1 ))
 N=${2}
@@ -9,14 +8,12 @@ method_name=${3}
 source ${JOBBASE}/ENV_DUMP.txt
 source ${JOBBASE}/SETTINGS_2.bash
 
-source /home/bjlunt2/.bashrc
-source /home/bjlunt2/.profile
-module load python/2.7.11
-#module load python
-#export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
 echo "USING PYTHON " $(which python)
-#LD_LIBRARY_PATH=~/usr/lib:/home/grad/samee1/packages/gsl-1.14/lib:/software/intel-composer-2011u5-x86_64/composerxe-2011.5.220/mkl/lib/intel64:${LD_LIBRARY_PATH}
-#export LD_LIBRARY_PATH
+
+if [ "${DEBUG}" = "True" ]
+then
+	trap 'echo Stalling for debug ; sleep infinity' EXIT
+fi
 
 
 export > ${JOBBASE}/final.bash
@@ -49,7 +46,7 @@ else
 	then
 		echo "Could not find the requested template." 1>&2 ; exit 1
 	fi
-	
+
 	THE_PAR_FILE="${TMP-${TMPDIR}}/start.par"
 	python ${BASE}/lib/python/sampling_core/par_template_processor.py --seed $(( ${SEED} + ${N} )) ${datadir_to_use}/${TEMPLATE_NAME} > ${THE_PAR_FILE}
 
@@ -76,12 +73,12 @@ eval 'method_additional_args=${method_args_'"${method_name}"'}'
 eval ${method_additional_environment} ${BASE}/METHODS/${method_name} --train --data ${training_data_dir} --parfile ${THE_PAR_FILE} --log ${method_sample_dir}/log/${N}.log --out ${method_sample_dir}/out/${N}.out --parout ${method_sample_dir}/out/${N}.par -- ${method_additional_args}
 ) \
 && ( echo "Training on ${TRAIN_ORTHO} done" ; echo "Training on ${TRAIN_ORTHO} done" >&2 ; exit 0) \
-|| (echo "Training on ${TRAIN_ORTHO} failed" ; echo "Training on ${TRAIN_ORTHO} FAILED" >&2 ; exit 1 ) 
+|| (echo "Training on ${TRAIN_ORTHO} failed" ; echo "Training on ${TRAIN_ORTHO} FAILED" >&2 ; exit 1 )
 
 #The above does not quit the main script on failure.
 if [ $? -ne 0 ]
 then
-	echo "Aborting"; echo "Aborting" 2>&1 
+	echo "Aborting"; echo "Aborting" 2>&1
 	exit 0
 	#A non-zero exit status would tell the whole DAG to fail.
 fi
@@ -106,11 +103,11 @@ do
        fi
 
 	(echo "CROSSVAL on ${ORTHO_NAME} START " ; echo "CROSSVAL on ${ORTHO_NAME} START" >&2 )
-	
+
 	mkdir -p ${tmpdatadir}/ORTHO_${ORTHO_NAME}
 	cp ${datadir_to_use}/base/* ${tmpdatadir}/ORTHO_${ORTHO_NAME}/
 	cp ${ORTHO_DIR}/* ${tmpdatadir}/ORTHO_${ORTHO_NAME}/
-	
+
 	#
 	#Call the prediction method
 	#
@@ -126,9 +123,3 @@ do
 done
 
 (echo "FINISHED" ; echo "FINISHED" >&2 )
-
-if [ "${DEBUG}" = "True" ]
-then
-	echo "Stalling at end for debug" ; echo "Stalling at end for debug" >&2
-	sleep 1000
-fi

@@ -2,16 +2,11 @@
 
 echo "SETUP STARTING "
 
-source /home/bjlunt2/.bashrc
-source /home/bjlunt2/.profile
-
 module load python/2.7.11
 #export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
 
 echo "USING PYTHON " $(which python)
 
-LD_LIBRARY_PATH=~/usr/lib:/home/grad/samee1/packages/gsl-1.14/lib:/software/intel-composer-2011u5-x86_64/composerxe-2011.5.220/mkl/lib/intel64:${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH
 
 set -e
 
@@ -62,7 +57,7 @@ then
 else
 	echo "Could not find data origin"
 	exit 1
-fi	
+fi
 
 #copy PAR files in
 if [ -z "${ENSEMBLE_NAME}" ]
@@ -75,10 +70,10 @@ then
 	else
 		TEMPLATE_FILENAME=${TEMPLATE_NAME}
 	fi
-	
+
 	#python ${BASE}/lib/python/sampling_core/par_template_processor.py --seed ${SEED} --base 0 --N ${N_TO_REFINE} --outpre ${PAR_DIR}/ ${DATA}/${TEMPLATE_FILENAME}
 else
-	for N in $(seq ${N_TO_REFINE})	
+	for N in $(seq ${N_TO_REFINE})
 	do
 		cp ${BASE}/ENSEMBLES/${ENSEMBLE_NAME}/${N}.par ${PAR_DIR}/${N}.par
 	done

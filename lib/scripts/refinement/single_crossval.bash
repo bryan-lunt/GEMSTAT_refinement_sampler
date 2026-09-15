@@ -9,14 +9,7 @@ method_name=${3}
 source ${JOBBASE}/ENV_DUMP.txt
 source ${JOBBASE}/SETTINGS_2.bash
 
-source /home/bjlunt2/.bashrc
-source /home/bjlunt2/.profile
-module load python/2.7.11
-#module load python
-#export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
 echo "USING PYTHON " $(which python)
-#LD_LIBRARY_PATH=~/usr/lib:/home/grad/samee1/packages/gsl-1.14/lib:/software/intel-composer-2011u5-x86_64/composerxe-2011.5.220/mkl/lib/intel64:${LD_LIBRARY_PATH}
-#export LD_LIBRARY_PATH
 
 
 export > ${JOBBASE}/final_singlecrossval.bash
@@ -41,7 +34,8 @@ TRAINED_PAR_FILE=${tmpdatadir}/trained_par_file.par
 
 #Get a par file from the HDF5 par store.
 (
-LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/shared-mounts/sinhas-storage1/INFRASTRUCTURE/HAL/JUPYTER/python/lib/ PYTHONPATH=${PYTHONPATH}:${BASE}/lib/GEMSTAT_scripts/python/src/:${BASE}/lib/notebook_core/:${BASE}/lib/sampling_core/ python ${BASE}/lib/python/sampling_core/hdf5_par.py ${JOBBASE}/crossval/${method_name}.hd5 ${N} > ${TRAINED_PAR_FILE}
+PYTHONPATH=${PYTHONPATH}:${BASE}/lib/GEMSTAT_scripts/python/src/:${BASE}/lib/notebook_core/:${BASE}/lib/sampling_core/ \
+	python ${BASE}/lib/python/sampling_core/hdf5_par.py ${JOBBASE}/crossval/${method_name}.hd5 ${N} > ${TRAINED_PAR_FILE}
 )
 
 if [ -z "${CROSSVAL_ORTHOS}" ]

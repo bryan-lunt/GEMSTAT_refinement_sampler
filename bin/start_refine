@@ -58,13 +58,13 @@ Executable     = ${BASE_DIR}/lib/scripts/refinement/setup.bash
 getenv = true
 
 input   = /dev/null
-output  = ${JOBDIR}/log/setup.out     
+output  = ${JOBDIR}/log/setup.out
 error   = ${JOBDIR}/log/setup.error
 
 environment = "BASE=${BASE_DIR} JOBBASE=${JOBDIR} JOBID=${JOB_ID}"
 
 requirements = ${all_requirements}
-                                           
+
 Queue
 EOF
 
@@ -96,7 +96,7 @@ requirements = ${all_requirements}
 
 
 arguments = ${JOBDIR} \$INT(single_num) \$(method_name)
-                                                  
+
 Queue ${BATCH_SIZE}
 EOF
 
@@ -109,12 +109,12 @@ input   = /dev/null
 output  = ${JOBDIR}/log/fanin_\$(method_name).out.\$(start_f)
 error   = ${JOBDIR}/log/fanin_\$(method_name).error.\$(start_f)
 
-environment = "BASE=${BASE_DIR} JOBBASE=${JOBDIR} JOBID=${JOB_ID}"
+environment = "BASE=${BASE_DIR} JOBBASE=${JOBDIR} JOBID=${JOB_ID} PATH=${PATH} PYTHONPATH=${PYTHONPATH}"
 
 requirements = ${all_requirements}
 
 arguments = ${JOBDIR} \$(method_name) \$(start_f) \$(end_f)
-                                                  
+
 Queue 1
 EOF
 
@@ -131,7 +131,7 @@ environment = "BASE=${BASE_DIR} JOBBASE=${JOBDIR} JOBID=${JOB_ID}"
 
 requirements = ${all_requirements}
 
-arguments = ${JOBDIR} 
+arguments = ${JOBDIR}
 
 Queue 1
 
@@ -152,9 +152,9 @@ VARS refine_${one_method_name}_batch${batchnum} method_name="${one_method_name}"
 VARS refine_${one_method_name}_batch${batchnum} batchnum="${batchnum}"
 EOF
         done
-	
+
 	if [ "${DO_FANIN}" == "True" ]
-	then	
+	then
 	#SETUP THE FANIN as part of the refinement dag
 	for batchnum in $(seq 0  $((${NUM_BATCHES} - 1)) )
         do
@@ -185,7 +185,7 @@ EOF
 
         done
 
-	
+
 	fi
 	#End of fanin part
 
