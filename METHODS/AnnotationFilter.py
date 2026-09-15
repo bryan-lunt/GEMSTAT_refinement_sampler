@@ -43,19 +43,19 @@ def read_motifs(filename):
 def filter_dl_annotations(annotations, distance=1):
     dl_annotations = [i for i in annotations if i.motif.name == "dl"]
     other_annotations = [i for i in annotations if i.motif.name != "dl"]
-    
+
     def overlaps(a,b):
         return a.end >= b.start
-    
+
     def interacts(a,b):
         return b.start - a.end <= distance
-    
+
     def too_far(a,b):
         return b.start - a.end > distance+1
-    
+
     accepted = set()
     available = set()
-    
+
     for one_dl in dl_annotations:
         if one_dl.orientation:
             available.add(one_dl)
@@ -71,12 +71,12 @@ def filter_dl_annotations(annotations, distance=1):
                     remove_set.add(one_av)
                 #probably overlapping
             available.difference_update(remove_set)
-    
+
     final_list = list(accepted)
     final_list.extend(other_annotations)
     final_list.sort(key=lambda x:x.start)
     return final_list
-    
+
 
 
 # In[31]:
@@ -120,7 +120,7 @@ annotation_thresholds = OrderedDict([(i,j["annot_thresh"]) for i,j in params["tf
 # In[93]:
 
 
-the_seqs = SIO.parse(seq_filename,"fasta",alphabet=Bio.Alphabet.IUPAC.unambiguous_dna)
+the_seqs = list(SIO.parse(seq_filename,"fasta",alphabet=Bio.Alphabet.IUPAC.unambiguous_dna))
 
 
 # In[94]:
@@ -132,7 +132,15 @@ the_motifs = list(read_motifs(motif_filename).values())
 # In[95]:
 
 
-annotations = [(i, GSANNOT.annotate_sequence(i.seq,the_motifs,et=[annotation_thresholds[j.name] for j in the_motifs])) for i in the_seqs]
+#annotations = [(i, GSANNOT.annotate_sequence(i.seq,the_motifs,et=[annotation_thresholds[j.name] for j in the_motifs])) for i in the_seqs]
+annotations = list()
+for i in the_seqs:
+    try:
+        one_set_of_annotations = GSANNOT.annotate_sequence(i.seq,the_motifs,et=[annotation_thresholds[j.name] for j in the_motifs])
+    except:
+        one_set_of_annotations = list()
+    annotations.append((i,one_set_of_annotations))
+
 
 annotations = [(i,filter_dl_annotations(j,2)) for i,j in annotations]
 
@@ -144,4 +152,3 @@ for i, j in annotations:
     print(">{}".format(i.name))
     for k in j:
         print(k)
-

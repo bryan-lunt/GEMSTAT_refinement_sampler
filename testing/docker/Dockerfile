@@ -21,7 +21,7 @@ RUN mkdir -p /opt/micromamba/bin && cd /opt/micromamba && \
     echo 'eval "$(/opt/micromamba/bin/micromamba shell hook -s bash)"' >> /etc/bashrc
 
 ### use micromamba to install python 2.7.15 ###
-RUN /opt/micromamba/bin/micromamba create -n py2715 python=2.7.15 numpy scipy h5py -c conda-forge biopython -y
+RUN /opt/micromamba/bin/micromamba create -n py2715 python=2.7.15 numpy scipy h5py -c conda-forge biopython=1.76 -y
 COPY python-modulefile /etc/modulefiles/python/2.7.11
 
 

@@ -1,3 +1,4 @@
 h5py>=2.8.0
 pandas
 numpy
+biopython==1.76
