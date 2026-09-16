@@ -55,6 +55,8 @@ cat > ${JOBDIR}/other/setup.con << EOF
 Universe       = vanilla
 Executable     = ${BASE_DIR}/lib/scripts/refinement/setup.bash
 
+request_cpus = 1
+
 getenv = true
 
 input   = /dev/null
@@ -79,7 +81,7 @@ cat > ${JOBDIR}/other/refine.con << EOF
 Universe       = vanilla
 Executable     = ${BASE_DIR}/lib/scripts/refinement/single_refine.bash
 
-concurrency_limits = BRYAN_CONCURRENT:${stupid_concurrency_limits_value_deux}
+request_cpus = 1
 
 batch_base = \$(batchnum) * ${BATCH_SIZE}
 single_num = \$(Process) + \$(batch_base)
@@ -104,6 +106,7 @@ cat > ${JOBDIR}/other/fanin.con << EOF
 Universe       = vanilla
 Executable     = ${BASE_DIR}/lib/scripts/fanin.bash
 
+request_cpus = 1
 
 input   = /dev/null
 output  = ${JOBDIR}/log/fanin_\$(method_name).out.\$(start_f)
@@ -122,6 +125,8 @@ EOF
 cat > ${JOBDIR}/other/scores.con << EOF
 Universe       = vanilla
 Executable     = ${BASE_DIR}/lib/scripts/refinement/scores.bash
+
+request_cpus = 1
 
 input   = /dev/null
 output  = ${JOBDIR}/log/scores.out.\$(Process)
@@ -142,25 +147,33 @@ EOF
 #
 for one_method_name in ${method_names}
 do
+
+	### BEGIN a single subdag for a single refinement method
+	cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
+MAXJOBS refinement ${MAX_RUNNING_BATCHES}
+#Fanin can happen in any order, so long as only one process writes to the file at a time. I hope.
+#comments must be on their own line alone.
+MAXJOBS fanin 1
+EOF
+
 	#THE ACTUAL COMPUTATIONS
 	for batchnum in $(seq 0 $((${NUM_BATCHES} - 1)) )
         do
                 cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
+### batch ${batchnum} ###
 JOB refine_${one_method_name}_batch${batchnum} ${JOBDIR}/other/refine.con
 CATEGORY refine_${one_method_name}_batch${batchnum} refinement
 VARS refine_${one_method_name}_batch${batchnum} method_name="${one_method_name}"
 VARS refine_${one_method_name}_batch${batchnum} batchnum="${batchnum}"
-EOF
-        done
 
-	if [ "${DO_FANIN}" == "True" ]
-	then
-	#SETUP THE FANIN as part of the refinement dag
-	for batchnum in $(seq 0  $((${NUM_BATCHES} - 1)) )
-        do
-		START_N=$(( ${batchnum}*${BATCH_SIZE} ))
-                END_N=$(( ${START_N} + ${BATCH_SIZE} ))
-                cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
+EOF
+
+if [ "${DO_FANIN}" == "True" ]
+then
+	START_N=$((${batchnum}*${BATCH_SIZE}))
+	END_N=$((${START_N}+${BATCH_SIZE}))
+
+	cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
 
 JOB fanin_${one_method_name}_batch${batchnum} ${JOBDIR}/other/fanin.con
 CATEGORY fanin_${one_method_name}_batch${batchnum} fanin
@@ -172,29 +185,11 @@ RETRY fanin_${one_method_name}_batch${batchnum} 3
 PARENT refine_${one_method_name}_batch${batchnum} CHILD fanin_${one_method_name}_batch${batchnum}
 
 EOF
-	if [ ${batchnum} -ne 0 ]
-	then
-		PREVIOUS_BATCH=$(( ${batchnum} - 1 ))
-                cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
-PARENT fanin_${one_method_name}_batch${PREVIOUS_BATCH} CHILD fanin_${one_method_name}_batch${batchnum}
-#PARENT refine_${one_method_name}_batch${PREVIOUS_BATCH} CHILD refine_${one_method_name}_batch${batchnum}
-EOF
-
-	fi
+fi #end of fanin if
+done #end of batchnum do
+done #end of one_method_name do
 
 
-        done
-
-
-	fi
-	#End of fanin part
-
-
-
-done
-cat >> ${JOBDIR}/other/refine_${one_method_name}.dag << EOF
-MAXJOBS refinement ${MAX_RUNNING_BATCHES}
-EOF
 
 #
 # CREATE the overal DAG
@@ -215,7 +210,7 @@ PARENT setup CHILD refine_${one_method_name}
 EOF
 
 done
-
+### DONE creating overal DAG
 
 
 cat > ${JOBDIR}/other/dagman.config << EOF

@@ -5,9 +5,9 @@ module load python/2.7.11
 
 DEBUG=False
 DO_FANIN=True
-DEBUG_FANING=True
+DEBUG_FANIN=False
 
-N_TO_REFINE=10
+N_TO_REFINE=20
 BATCH_SIZE=10
 
 
