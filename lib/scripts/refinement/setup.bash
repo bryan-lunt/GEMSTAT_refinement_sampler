@@ -2,8 +2,9 @@
 
 echo "SETUP STARTING "
 
+
+source /etc/profile.d/modules.sh
 module load python/2.7.11
-#export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
 
 echo "USING PYTHON " $(which python)
 

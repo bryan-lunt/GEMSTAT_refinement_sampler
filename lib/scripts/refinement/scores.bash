@@ -1,14 +1,7 @@
 #!/bin/bash
 
-source /home/bjlunt2/.bashrc
-
-module load python/2.7.11
-#export PATH=/software/python-2.7.10-x86_64/bin:${PATH}
-
 echo "USING PYTHON " $(which python)
 
-LD_LIBRARY_PATH=~/usr/lib:/home/grad/samee1/packages/gsl-1.14/lib:/software/intel-composer-2011u5-x86_64/composerxe-2011.5.220/mkl/lib/intel64:${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH
 
 #JOBBASE we get from the environment
 #JOBID we also get from the environment, but it should just match job base
@@ -33,7 +26,7 @@ cp ${datadir_to_use}/ORTHO/${TRAIN_ORTHO}/* ${training_data_dir} #TODO: Make con
 for ORTHO_DIR in ${datadir_to_use}/ORTHO/*
 do
 	ORTHO_NAME=$(basename ${ORTHO_DIR})
-	
+
         mkdir -p ${tmpdatadir}/ORTHO_${ORTHO_NAME}
         cp ${datadir_to_use}/base/* ${tmpdatadir}/ORTHO_${ORTHO_NAME}/
         cp ${ORTHO_DIR}/* ${tmpdatadir}/ORTHO_${ORTHO_NAME}/
@@ -51,7 +44,7 @@ do
 	do
 		ORTHO_NAME=$(basename ${ORTHO_DIR})
 		ORTHO_DATA_DIR=${tmpdatadir}/ORTHO_${ORTHO_NAME}
-		
+
 		METHOD_ORTHO_SCORE_FILE=${JOBBASE}/scores/${method_name}_${ORTHO_NAME}.txt
 		echo -n '#i' > ${METHOD_ORTHO_SCORE_FILE}
 		for one_scoring_method in ${SCORING_METHODS}
@@ -59,14 +52,14 @@ do
 			echo -n " ${one_scoring_method}" >> ${METHOD_ORTHO_SCORE_FILE}
 		done
 		echo "" >> ${METHOD_ORTHO_SCORE_FILE}
-		
-		#for every refined par file	
+
+		#for every refined par file
 		for N in $(seq ${N_TO_REFINE})
 		do
 		#
 		#Call the prediction method
 		#
-	
+
 		echo -n "$N" >> ${METHOD_ORTHO_SCORE_FILE}
 
 
@@ -75,7 +68,7 @@ do
 				echo -n " " >> ${METHOD_ORTHO_SCORE_FILE}
 				echo -n "$(${BASE}/SCORING/${one_scoring_method} --data ${tmpdatadir}/ORTHO_${ORTHO_NAME} --parfile ${JOBBASE}/par/${N}.par --parout ${method_sample_dir}/out/${N}.par --out ${method_sample_dir}/crossval/${ORTHO_NAME}_${N}.out)" >> ${METHOD_ORTHO_SCORE_FILE}
 			done
-			
+
 			echo "" >> ${METHOD_ORTHO_SCORE_FILE}
 		done
 	done
